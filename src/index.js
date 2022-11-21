@@ -21,6 +21,7 @@ function onSearchCountry(e) {
   if (!inputValue) {
     refs.countryList.innerHTML = '';
     refs.countryInfo.innerHTML = '';
+    return;
   }
   fetchCountries(inputValue)
     .then(countries => {
@@ -36,41 +37,43 @@ function onSearchCountry(e) {
             showOnlyTheLastOne: true,
           }
         );
+        return;
       }
 
-      if (countries.length >= 2 && countries.length <= 10) {
+      if (countries.length >= 2) {
         refs.countryList.innerHTML = renderCountryList(countries);
         refs.countryInfo.innerHTML = '';
+        return;
       }
 
-      if (countries.length === 1) {
-        refs.countryInfo.innerHTML = renderCountryInfo(countries);
-        refs.countryList.innerHTML = '';
-      }
+      refs.countryInfo.innerHTML = renderCountryInfo(countries);
+      refs.countryList.innerHTML = '';
     })
-    .catch(error => {
+    .catch(() =>
       Notiflix.Notify.failure('Oops, there is no country with that name', {
         timeout: 1000,
         showOnlyTheLastOne: true,
-      });
-    });
+      })
+    );
 }
 
 function renderCountryList(countries) {
   return countries
-    .map(({ name, flags }) => {
-      return `<li class="country-list__item">
+    .map(
+      ({ name, flags }) =>
+        `<li class="country-list__item">
   <img src="${flags.svg}" alt="${name.official}" width="30" height="30">
   <p class="countru-list__name">${name.official}</p>
-</li>`;
-    })
+</li>`
+    )
     .join('');
 }
 
 function renderCountryInfo(countries) {
   return countries
-    .map(({ name, flags, capital, population, languages }) => {
-      return `<h2 class="title-info">
+    .map(
+      ({ name, flags, capital, population, languages }) =>
+        `<h2 class="title-info">
   <img
     src="${flags.svg}"
     alt="${name.official}"
@@ -86,9 +89,9 @@ function renderCountryInfo(countries) {
     <p><strong>Population:</strong> ${population}</p>
   </li>
   <li>
-    <p><strong>Languages:</strong> ${Object.values(languages)}</p>
+    <p><strong>Languages:</strong> ${Object.values(languages).join(', ')}</p>
   </li>
-</ul>`;
-    })
+</ul>`
+    )
     .join('');
 }
