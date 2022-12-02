@@ -1,97 +1,84 @@
 import './css/styles.css';
 import { fetchCountries } from './fetchCountries';
 import debounce from 'lodash.debounce';
-import Notiflix from 'notiflix';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
 
-const refs = {
-  inputEl: document.querySelector('#search-box'),
-  countryList: document.querySelector('.country-list'),
-  countryInfo: document.querySelector('.country-info'),
-};
+const inputField = document.querySelector('#search-box');
+const countryList = document.querySelector('.country-list');
+const countryInfo = document.querySelector('.country-info');
 
-refs.inputEl.addEventListener(
-  'input',
-  debounce(onSearchCountry, DEBOUNCE_DELAY)
-);
+inputField.addEventListener('input', debounce(onSearchCountry, DEBOUNCE_DELAY));
 
-function onSearchCountry(e) {
-  const inputValue = e.target.value.trim();
-  if (!inputValue) {
-    refs.countryList.innerHTML = '';
-    refs.countryInfo.innerHTML = '';
+function onSearchCountry(event) {
+  const nameSearch = event.target.value.trim();
+  if (!nameSearch) {
+    countryList.innerHTML = '';
+    countryInfo.innerHTML = '';
     return;
   }
-  fetchCountries(inputValue)
+  fetchCountries(nameSearch)
     .then(countries => {
-      console.log(countries);
-
       if (countries.length > 10) {
-        refs.countryList.innerHTML = '';
-        refs.countryInfo.innerHTML = '';
-        Notiflix.Notify.info(
+        Notify.info(
           'Too many matches found. Please enter a more specific name.',
           {
             timeout: 1000,
-            showOnlyTheLastOne: true,
           }
         );
         return;
       }
-
       if (countries.length >= 2) {
-        refs.countryList.innerHTML = renderCountryList(countries);
-        refs.countryInfo.innerHTML = '';
+        createMarkupCountryList(countries);
         return;
       }
-
-      refs.countryInfo.innerHTML = renderCountryInfo(countries);
-      refs.countryList.innerHTML = '';
+      createMarkupCountryInfo(countries);
+      return;
     })
     .catch(() =>
-      Notiflix.Notify.failure('Oops, there is no country with that name', {
+      Notify.failure('Oops, there is no country with that name', {
         timeout: 1000,
-        showOnlyTheLastOne: true,
       })
     );
 }
-
-function renderCountryList(countries) {
-  return countries
+function createMarkupCountryList(countries) {
+  const markupList = countries
     .map(
-      ({ name, flags }) =>
-        `<li class="country-list__item">
+      ({ flags, name }) => `<li class="country-list__item">
   <img src="${flags.svg}" alt="${name.official}" width="30" height="30">
   <p class="countru-list__name">${name.official}</p>
 </li>`
     )
     .join('');
+
+  countryList.innerHTML = markupList;
+  countryInfo.innerHTML = '';
 }
 
-function renderCountryInfo(countries) {
-  return countries
+function createMarkupCountryInfo(countries) {
+  const infoMarkup = countries
     .map(
-      ({ name, flags, capital, population, languages }) =>
+      ({ flags, name, capital, population, languages }) =>
         `<h2 class="title-info">
-  <img
-    src="${flags.svg}"
-    alt="${name.official}"
-    width="30"
-    height="30"
-  />${name.official}
-</h2>
-<ul class="list-info">
-  <li class="list-info__item">
-    <p><strong>Capital:</strong> ${capital}</p>
-  </li>
-  <li>
-    <p><strong>Population:</strong> ${population}</p>
-  </li>
-  <li>
-    <p><strong>Languages:</strong> ${Object.values(languages).join(', ')}</p>
-  </li>
-</ul>`
+        <img src="${flags.svg}" alt="${
+          name.official
+        }" width="30" height="30" />${name.official}
+      </h2>
+       <ul class="list-info">
+          <li class="list-info__item">
+            <p><strong>Capital:</strong> ${capital}</p>
+         </li>
+        <li>
+          <p><strong>Population:</strong> ${population}</p>
+        </li>
+        <li>
+  <p><strong>Languages:</strong> ${Object.values(languages).join(', ')}</p>
+       </li>
+    </ul>`
     )
     .join('');
+
+  countryInfo.innerHTML = infoMarkup;
+  countryList.innerHTML = '';
 }
